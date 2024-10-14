@@ -1,0 +1,22 @@
+
+server:
+  address: ":8080"
+routes:
+- path: /example/{rest}
+  description: "An example route that picks params from the env, path, query, and headers"
+  environment:
+    allowlist:
+      - EXAMPLE_HOST
+  params:
+    path: '{{.GetParam "rest"}}'
+    host: '{{.GetEnv "EXAMPLE_HOST"}}'
+    query: '{{.GetQuery "query"}}'
+    contentType: '{{.GetHeader "content-type"}}'
+  checks: 
+  - expr: 'host != ""'
+    error: "host is required"
+  - expr: 'path != ""'
+    error: "path is required"
+  redirect:
+    url: "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.contentType}}"
+ 
