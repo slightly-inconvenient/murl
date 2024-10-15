@@ -1,0 +1,45 @@
+version: "3.8"
+
+volumes:
+  alertmanager-data:
+  app-cache:
+  grafana-data:
+  loki-data:
+  postgres-data:
+  prometheus-data:
+  promtail-data:
+  tempo-data:
+
+services:
+  change-volume-ownership:
+    image: busybox
+    volumes:
+      - app-cache:/data/app-cache
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - chown -R 1000:1000 /data/app-cache # vscode user is 1000
+
+  app:
+    build:
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../:/home/vscode/workspace/github.com/slightly-inconvenient/murl:cached
+      - app-cache:/home/vscode/.cache
+    # Overrides default command so things don't shut down after the process ends.
+    # Also fixes all file permissions to align across images to their correct users.
+    command: sleep infinity
+    networks:
+      - devcontainer
+    depends_on:
+      change-volume-ownership:
+        condition: service_completed_successfully
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+networks:
+  devcontainer:
+    name: murl-devcontainer

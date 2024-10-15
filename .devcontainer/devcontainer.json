@@ -1,20 +1,55 @@
 {
-	"name": "Go",
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
-	"customizations": {
-		"vscode": {
+    // Configuration based on https://github.com/devcontainers/images/blob/main/src/go/.devcontainer/devcontainer.json
+    "name": "MURL",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/home/vscode/workspace/github.com/slightly-inconvenient/murl",
+    "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+    // Uncomment if necessary for e.g. debugger. This makes the container less secure so proceed with caution.
+    // "runArgs": [
+    //     "--cap-add=SYS_PTRACE",
+    //     "--security-opt",
+    //     "seccomp=unconfined"
+    // ],
+    // Configure tool-specific properties.
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Set *default* container specific settings.json values on container create.
             "settings": {
                 "go.toolsManagement.checkForUpdates": "local",
                 "go.useLanguageServer": true,
+                "go.gopath": "/go",
+                "gopls": {
+                    "formatting.gofumpt": true,
+                    "ui.semanticTokens": true
+                },
+                "go.formatTool": "gofumpt",
+                "files.watcherExclude": {
+                    "**/.bazel": true,
+                    "**/bazel-out": true
+                },
+                "bazel.buildifierFixOnFormat": true,
+                "bazel.buildifierExecutable": "@buildifier_prebuilt//:buildifier",
+                "bazel.executable": "bazel",
                 "go.coverOnSave": true,
                 "go.coverOnSingleTest": true,
                 "go.coverOnSingleTestFile": true,
                 "go.diagnostic.vulncheck": "Imports",
                 "go.disableConcurrentTests": true
             },
+            // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
+                "bazelbuild.vscode-bazel",
                 "golang.go"
             ]
-		}
-	},
+        }
+    },
+    // Run as this user
+    "remoteUser": "vscode",
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    "forwardPorts": [
+        8443,
+        8080
+    ]
 }

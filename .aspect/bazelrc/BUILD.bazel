@@ -1,0 +1,15 @@
+load("@aspect_bazel_lib//lib:bazelrc_presets.bzl", "write_aspect_bazelrc_presets")
+
+# Source bazel rc presets from https://github.com/aspect-build/bazel-lib/tree/main/.aspect/bazelrc
+# to avoid manual maintenance burden over long term.
+write_aspect_bazelrc_presets(
+    name = "update",
+    presets = [
+        "bazel7",
+        "ci",
+        "convenience",
+        "correctness",
+        "debug",
+        "performance",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "server",
+    srcs = [
+        "config.go",
+        "server.go",
+    ],
+    importpath = "github.com/slightly-inconvenient/murl/internal/server",
+    visibility = ["//:__subpackages__"],
+)
+
+go_test(
+    name = "server_test",
+    timeout = "short",
+    srcs = ["server_test.go"],
+    deps = [
+        ":server",
+        "//internal/testtls",
+    ],
+)

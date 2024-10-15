@@ -1,0 +1,2 @@
+3b018a6a48eabd29f0bdb27d90bbcfd1cce0f3fedb13018be2bb243b1d83dd24  bazelisk-linux-arm64
+a110a613ac57081482348b9fa1719ede1fc9bb45a010f82f15eaeb1e9b657e29  bazelisk-linux-amd64

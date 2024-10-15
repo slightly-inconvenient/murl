@@ -1,0 +1,21 @@
+# Import Aspect bazelrc presets
+import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.aspect/bazelrc/bazel7.bazelrc
+import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.aspect/bazelrc/convenience.bazelrc
+import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.aspect/bazelrc/correctness.bazelrc
+import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.aspect/bazelrc/debug.bazelrc
+import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.aspect/bazelrc/performance.bazelrc
+
+# If we're running in devcontainer import the specific overrides from it
+try-import /home/vscode/workspace/github.com/slightly-inconvenient/murl/.devcontainer/.bazelrc
+
+# Enable Bzlmod for every Bazel command
+common --enable_bzlmod
+
+# Place all symlinks under a shared directory at repo root
+common --symlink_prefix=.bazel/
+
+# Load any settings & overrides specific to the current user from `./user.bazelrc`.
+# This file should appear in `.gitignore` so that settings are not shared with team members. This
+# should be last statement in this config so the user configuration is able to overwrite flags from
+# this file. See https://bazel.build/configure/best-practices#bazelrc-file.
+try-import /home/vscode/workspace/github.com/slightly-inconvenient/murl/user.bazelrc

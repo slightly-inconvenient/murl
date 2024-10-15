@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cmd_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/slightly-inconvenient/murl/cmd",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:murl",
+        "//internal/config",
+        "//internal/server",
+    ],
+)
+
+go_binary(
+    name = "cmd",
+    embed = [":cmd_lib"],
+    visibility = ["//visibility:public"],
+)

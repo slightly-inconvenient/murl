@@ -1,0 +1,8 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "testtls",
+    srcs = ["tls.go"],
+    importpath = "github.com/slightly-inconvenient/murl/internal/testtls",
+    visibility = ["//:__subpackages__"],
+)
