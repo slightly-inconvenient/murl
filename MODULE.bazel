@@ -11,12 +11,11 @@ module(name = "murl")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_go", version = "0.50.1")
 bazel_dep(name = "gazelle", version = "0.39.1")
-
-bazel_dep(
-    name = "buildifier_prebuilt",
-    version = "7.3.1",
-    dev_dependency = True,
-)
+bazel_dep(name = "container_structure_test", version = "1.19.1")
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_oci", version = "2.0.1")
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+bazel_dep(name = "buildifier_prebuilt", version = "7.3.1")
 
 # When updated, remember to run `bazel run //.aspect/bazelrc:update` to update the .bazelrc preset files
 bazel_dep(name = "aspect_bazel_lib", version = "2.9.1")
@@ -33,3 +32,15 @@ use_repo(
     "com_github_google_cel_go",
     "in_gopkg_yaml_v3",
 )
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "distroless_static",
+    digest = "sha256:26f9b99f2463f55f20db19feb4d96eb88b056e0f1be7016bb9296a464a89d772",
+    image = "gcr.io/distroless/static",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64",
+    ],
+)
+use_repo(oci, "distroless_static", "distroless_static_linux_amd64", "distroless_static_linux_arm64")

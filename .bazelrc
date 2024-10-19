@@ -14,6 +14,12 @@ common --enable_bzlmod
 # Place all symlinks under a shared directory at repo root
 common --symlink_prefix=.bazel/
 
+# Always build pure binaries without CGO
+build --@rules_go//go/config:pure
+
+# Always link binaries statically
+build --@rules_go//go/config:static
+
 # Load any settings & overrides specific to the current user from `./user.bazelrc`.
 # This file should appear in `.gitignore` so that settings are not shared with team members. This
 # should be last statement in this config so the user configuration is able to overwrite flags from

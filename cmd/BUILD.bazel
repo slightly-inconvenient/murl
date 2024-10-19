@@ -1,4 +1,8 @@
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@aspect_bazel_lib//lib:testing.bzl", "assert_archive_contains")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("@rules_oci//oci:defs.bzl", "oci_image")
 
 go_library(
     name = "cmd_lib",
@@ -14,6 +18,39 @@ go_library(
 
 go_binary(
     name = "cmd",
+    basename = "murl",
     embed = [":cmd_lib"],
     visibility = ["//visibility:public"],
+)
+
+tar(
+    name = "app_layer",
+    srcs = [":cmd"],
+    mtree = [
+        "murl uid=0 gid=0 mode=0755 time=1672560000 type=file content=$(location :cmd)",
+    ],
+)
+
+assert_archive_contains(
+    name = "test_app_layer",
+    archive = ":app_layer",
+    expected = ["murl"],
+    type = "tar",
+    visibility = ["//visibility:public"],
+)
+
+oci_image(
+    name = "image",
+    base = "@distroless_static",
+    entrypoint = ["/murl"],
+    tars = [":app_layer"],
+)
+
+platform_transition_filegroup(
+    name = "transitioned_image",
+    srcs = [":image"],
+    target_platform = select({
+        "@platforms//cpu:arm64": "@rules_go//go/toolchain:linux_arm64",
+        "@platforms//cpu:x86_64": "@rules_go//go/toolchain:linux_amd64",
+    }),
 )
