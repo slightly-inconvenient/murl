@@ -108,5 +108,5 @@ bashcompinit
 # === Welcome Message for how-to-use ===
 
 cat <<EOF
-Welcome to the MURL development envinronment!
+Welcome to the MURL development environment!
 EOF
