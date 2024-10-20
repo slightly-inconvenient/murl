@@ -1,22 +1,54 @@
-
 server:
+  # Address to bind the server listener to
   address: ":8080"
+
+  # Required if TLS is wanted. If omitted, murl defaults to serving without TLS.
+  #tls:
+  #  cert: /path/to/tls/certificate
+  #  key:  /path/to/tls/key
+
 routes:
-- path: /example/{rest}
+
+- # Path to match against. Currently only GET requests are supported and "GET " is automatically prefixed to the path.
+  # Any Go http.ServeMux supported patterns may be used.
+  # Any path parameters are available later in params extraction through the GetParam method.
+  path: /example/{rest}
+  
+  # Each route may be accompanied by a human friendly description for documentation purposes.
   description: "An example route that picks params from the env, path, query, and headers"
+
+  # All environment variables made available to the route must be explicitly allow listed.
+  # This is to prevent accidental use of sensitive environment variables if an input param is used to determine the env variable name.
   environment:
     allowlist:
       - EXAMPLE_HOST
+
+  # Params must be explicitly defined for the latter stages.
+  # The key registered in params is available for use later in checks and the redirect url template.
+  # The value can be any Go text/template compatible template string. The template is given an object as input with the following extraction methods:
+  # - GetParam: Extracts a path parameter registered in the path
+  # - GetEnv: Extracts an environment variable registered in the environment allowlist
+  # - GetQuery: Extracts a query parameter from the request. Repeated query params are not supported following the Go http request query params get API.
+  # - GetHeader: Extracts a header value from the request. Repeated header values are not supported following the Go http request header get API.
   params:
     path: '{{.GetParam "rest"}}'
     host: '{{.GetEnv "EXAMPLE_HOST"}}'
     query: '{{.GetQuery "query"}}'
     contentType: '{{.GetHeader "content-type"}}'
+
+  # Checks may be used to validate the input params or any other condition before redirecting.
+  # The expr field can be any Common Expression Language (CEL) compatible expression.
+  # The params object is available as an input to the expression.
+  # The error field is the error message to return if the expression evaluates to false.
+  # It may be any Go text/template compatible template string and is given the same params object as input.
   checks: 
   - expr: 'host != ""'
     error: "host is required"
   - expr: 'path != ""'
     error: "path is required"
+
+  # Redirects are the final stage of the route and are used to redirect the request to another location.
+  # The url field can be any Go text/template compatible template string.
+  # The template is given the same params object as input.
   redirect:
     url: "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.contentType}}"
- 
