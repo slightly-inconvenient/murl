@@ -1,8 +1,11 @@
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
+load("@aspect_bazel_lib//lib:jq.bzl", "jq")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@aspect_bazel_lib//lib:testing.bzl", "assert_archive_contains")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_go//go:def.bzl", "go_binary", "go_library")
-load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
 
 go_library(
     name = "cmd_lib",
@@ -29,6 +32,7 @@ tar(
     mtree = [
         "murl uid=0 gid=0 mode=0755 time=1672560000 type=file content=$(location :cmd)",
     ],
+    visibility = ["//visibility:public"],
 )
 
 assert_archive_contains(
@@ -40,17 +44,62 @@ assert_archive_contains(
 )
 
 oci_image(
-    name = "image",
+    name = "image_src",
     base = "@distroless_static",
     entrypoint = ["/murl"],
     tars = [":app_layer"],
+    visibility = ["//visibility:__pkg__"],
 )
 
 platform_transition_filegroup(
-    name = "transitioned_image",
-    srcs = [":image"],
-    target_platform = select({
-        "@platforms//cpu:arm64": "@rules_go//go/toolchain:linux_arm64",
-        "@platforms//cpu:x86_64": "@rules_go//go/toolchain:linux_amd64",
-    }),
+    name = "image_linux_arm64",
+    srcs = [":image_src"],
+    target_platform = "@rules_go//go/toolchain:linux_arm64",
+    visibility = ["//visibility:__pkg__"],
+)
+
+platform_transition_filegroup(
+    name = "image_linux_amd64",
+    srcs = [":image_src"],
+    target_platform = "@rules_go//go/toolchain:linux_amd64",
+    visibility = ["//visibility:__pkg__"],
+)
+
+oci_image_index(
+    name = "image",
+    images = [
+        ":image_linux_amd64",
+        ":image_linux_arm64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+directory_path(
+    name = "_image_index_json",
+    directory = "image",
+    path = "index.json",
+    visibility = ["//visibility:__pkg__"],
+)
+
+copy_file(
+    name = "_image_index_json_cp",
+    src = "_image_index_json",
+    out = "_image_index.json",
+    visibility = ["//visibility:__pkg__"],
+)
+
+jq(
+    name = "image.digest",
+    srcs = ["_image_index.json"],
+    out = "image.json.sha256",
+    args = ["--raw-output"],
+    filter = """.manifests[0].digest | sub("^sha256:"; "")""",
+    visibility = ["//visibility:public"],
+)
+
+oci_push(
+    name = "push_image",
+    image = ":image",
+    remote_tags = ["latest"],
+    repository = "ghcr.io/slightly-inconvenient/murl",
 )

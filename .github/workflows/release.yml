@@ -1,0 +1,40 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: 'Version to tag the release as'
+        required: true
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push image
+        id: build_push
+        run: |
+          bazel run //cmd:push_image -- --repository "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" --tag "v${{ github.event.inputs.version }}"
+          bazel build //cmd:image.digest
+          echo "digest=sha256:$(cat ./.bazel/bin/cmd/image.json.sha256)" >> $GITHUB_OUTPUT
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.build_push.outputs.digest }}
+          push-to-registry: true
