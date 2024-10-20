@@ -1,0 +1,16 @@
+name: CI
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - name: Lint
+      run: bazel run //:buildifier_check
+    - name: Test 
+      run: bazel test $(bazel query 'kind("go_test rule", //...)') //cmd:test_app_layer
