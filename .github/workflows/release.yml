@@ -9,11 +9,12 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DIST_DIR: ${{ github.workspace }}/dist
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       attestations: write
       id-token: write
@@ -25,8 +26,25 @@ jobs:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}
           repository-cache: true
+      - name: Build binaries
+        run: |
+          mkdir ${{ env.DIST_DIR }}
+          bazel build --platforms=@rules_go//go/toolchain:darwin_arm64 //cmd
+          cp .bazel/bin/cmd/cmd_/murl ${{ env.DIST_DIR }}/murl-darwin-arm64
+          chmod +x ${{ env.DIST_DIR }}/murl-darwin-arm64
+          bazel build --platforms=@rules_go//go/toolchain:darwin_amd64 //cmd
+          cp .bazel/bin/cmd/cmd_/murl ${{ env.DIST_DIR }}/murl-darwin-amd64
+          chmod +x ${{ env.DIST_DIR }}/murl-darwin-amd64
+          bazel build --platforms=@rules_go//go/toolchain:linux_arm64 //cmd
+          cp .bazel/bin/cmd/cmd_/murl ${{ env.DIST_DIR }}/murl-linux-arm64
+          chmod +x ${{ env.DIST_DIR }}/murl-linux-arm64
+          bazel build --platforms=@rules_go//go/toolchain:linux_amd64 //cmd
+          cp .bazel/bin/cmd/cmd_/murl ${{ env.DIST_DIR }}/murl-linux-amd64
+          chmod +x ${{ env.DIST_DIR }}/murl-linux-amd64
+          cd ${{ env.DIST_DIR }}
+          sha256sum * > sha256sum.txt
       - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -37,6 +55,14 @@ jobs:
           bazel run //cmd:push_image -- --repository "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" --tag "v${{ github.event.inputs.version }}"
           bazel build //cmd:image.digest
           echo "digest=sha256:$(cat ./.bazel/bin/cmd/image.json.sha256)" >> $GITHUB_OUTPUT
+      - name: Create release
+        run: |
+          gh release create v${{ github.event.inputs.version }} ${{ env.DIST_DIR }}/* --notes "Release v${{ github.event.inputs.version }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: '${{env.DIST_DIR}}/*'
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
