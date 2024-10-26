@@ -47,6 +47,7 @@ type RouteRedirect struct {
 
 type InputRoute struct {
 	Path        string                `yaml:"path" json:"path"`
+	Aliases     []string              `yaml:"aliases" json:"aliases"`
 	Description string                `yaml:"description" json:"description"`
 	Environment InputRouteEnvironment `yaml:"environment" json:"environment"`
 	Params      map[string]string     `yaml:"params" json:"params"`
@@ -55,7 +56,7 @@ type InputRoute struct {
 }
 
 type Route struct {
-	path        string
+	paths       []string
 	description string
 	environment RouteEnvironment
 	params      map[string]*template.Template
@@ -72,20 +73,18 @@ func NewRoutes(routes []InputRoute) ([]Route, error) {
 	for idx, route := range routes {
 		resultRoute := Route{
 			valid:       true,
-			path:        route.Path,
 			description: route.Description,
 		}
-		if resultRoute.path == "" {
-			return nil, fmt.Errorf("path to match against is required for route but missing from route at index %d", idx)
-		}
 
-		if !strings.HasPrefix(resultRoute.path, "/") {
-			return nil, fmt.Errorf("path %q must be an absolute path (start with slash)", route.Path)
+		paths, err := parseRoutePaths(route.Path, route.Aliases)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse path or alias for route at index [%d]: %w", idx, err)
 		}
+		resultRoute.paths = paths
 
 		params, err := parseRouteParams(route.Params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse params for route %s: %w", route.Path, err)
+			return nil, fmt.Errorf("failed to parse params for route at index [%d]: %w", idx, err)
 		}
 		resultRoute.params = params
 
@@ -93,17 +92,17 @@ func NewRoutes(routes []InputRoute) ([]Route, error) {
 
 		celEnv, err := parseRouteCheckCelEnv(route.Params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create new CEL environment for route %s: %w", route.Path, err)
+			return nil, fmt.Errorf("failed to create new CEL environment for route at index [%d]: %w", idx, err)
 		}
 
 		for idx := range route.Checks {
 			expr, err := parseRouteCheckExpr(route.Checks[idx].Expr, celEnv)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse check expression for route %s: %w", route.Path, err)
+				return nil, fmt.Errorf("failed to parse check expression for route at index [%d]: %w", idx, err)
 			}
 			tmpl, err := parseTemplate(route.Checks[idx].Error)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse check error template for route %s: %w", route.Path, err)
+				return nil, fmt.Errorf("failed to parse check error template for route at index [%d]: %w", idx, err)
 			}
 
 			resultRoute.checks = append(resultRoute.checks, RouteCheck{
@@ -115,13 +114,26 @@ func NewRoutes(routes []InputRoute) ([]Route, error) {
 		parsedURL, err := parseTemplate(route.Redirect.URL)
 		resultRoute.redirect.url = parsedURL
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse redirect url for route %s: %w", route.Path, err)
+			return nil, fmt.Errorf("failed to parse redirect url for route at index [%d]: %w", idx, err)
 		}
 
 		result = append(result, resultRoute)
 	}
 
 	return result, nil
+}
+
+func parseRoutePaths(path string, aliases []string) ([]string, error) {
+	paths := make([]string, 0, len(aliases)+1)
+	paths = append(paths, path)
+	paths = append(paths, aliases...)
+	for _, path := range paths {
+		if !strings.HasPrefix(path, "/") {
+			return nil, fmt.Errorf("%q must be an absolute path (start with slash)", path)
+		}
+	}
+
+	return paths, nil
 }
 
 func parseRouteParams(params map[string]string) (map[string]*template.Template, error) {

@@ -36,7 +36,9 @@ func TestRun(t *testing.T) {
 			}
 		}()
 
-		server.Run(context.Background(), server.Config{}, nil)
+		if err := server.Run(context.Background(), server.Config{}, nil); err != nil {
+			t.Fatalf("expected error to be nil but got %v", err)
+		}
 	})
 
 	caFile, certFile, keyFile := testtls.CreateTestTLSCertificates(t.TempDir())
