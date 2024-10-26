@@ -25,12 +25,22 @@ func run() int {
 		return handleError(err)
 	}
 
-	config, routes, err := config.ParseConfigFile(flags.Lookup("config").Value.String())
+	serverConfigInput, routesInput, err := config.ParseConfigFile(flags.Lookup("config").Value.String())
 	if err != nil {
 		return handleError(err)
 	}
 
-	if err := server.Run(ctx, config, murl.NewMux(routes)); err != nil {
+	serverConfig, err := server.NewConfig(serverConfigInput)
+	if err != nil {
+		return handleError(err)
+	}
+
+	routes, err := murl.NewRoutes(routesInput)
+	if err != nil {
+		return handleError(err)
+	}
+
+	if err := server.Run(ctx, serverConfig, murl.NewMux(routes)); err != nil {
 		return handleError(err)
 	}
 
