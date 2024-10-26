@@ -13,7 +13,10 @@ go_library(
 go_test(
     name = "server_test",
     timeout = "short",
-    srcs = ["server_test.go"],
+    srcs = [
+        "config_test.go",
+        "server_test.go",
+    ],
     deps = [
         ":server",
         "//internal/testtls",

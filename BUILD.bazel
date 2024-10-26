@@ -49,6 +49,9 @@ go_library(
 go_test(
     name = "murl_test",
     timeout = "short",
-    srcs = ["handlers_test.go"],
+    srcs = [
+        "config_test.go",
+        "handlers_test.go",
+    ],
     deps = [":murl"],
 )
