@@ -13,6 +13,11 @@ routes:
   # Any Go http.ServeMux supported patterns may be used.
   # Any path parameters are available later in params extraction through the GetParam method.
   path: /example/{rest}
+
+  # Aliases allow for multiple paths to be matched to the same route.
+  # They behave exactly as the path-value defined above.
+  aliases:
+    - /example2/{rest}
   
   # Each route may be accompanied by a human friendly description for documentation purposes.
   description: "An example route that picks params from the env, path, query, and headers"

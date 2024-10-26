@@ -136,6 +136,20 @@ func TestHandler(t *testing.T) {
 			req:           httptest.NewRequest("GET", "/example", nil),
 			checkResponse: createResponseChecker(http.StatusBadRequest, "id is required"),
 		},
+		{
+			description: "route with aliases",
+			routes: []murl.InputRoute{
+				{
+					Path:    "/example",
+					Aliases: []string{"/example-alias"},
+					Redirect: murl.InputRouteRedirect{
+						URL: "https://example.com",
+					},
+				},
+			},
+			req:           httptest.NewRequest("GET", "/example-alias", nil),
+			checkResponse: createResponseChecker(http.StatusTemporaryRedirect, "https://example.com"),
+		},
 	}
 
 	for _, test := range tests {

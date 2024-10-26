@@ -45,8 +45,10 @@ func NewMux(routes []Route) *http.ServeMux {
 		if !route.valid {
 			panic(fmt.Errorf("route at index %d has not been validated - create the routes using NewRoutes", idx))
 		}
-
-		mux.HandleFunc("GET "+route.path, createRouteHandler(route))
+		handler := createRouteHandler(route)
+		for _, path := range route.paths {
+			mux.HandleFunc("GET "+path, handler)
+		}
 	}
 	return mux
 }
