@@ -82,6 +82,7 @@ func createRouteHandler(route Route) http.HandlerFunc {
 			err := expr.Execute(buffer, input)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("failed to parse param for key %q: %s", key, err), http.StatusBadRequest)
+				return
 			}
 			params[key] = buffer.String()
 		}

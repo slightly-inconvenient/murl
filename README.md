@@ -18,7 +18,7 @@ MURL is available either as a binary through [GitHub Releases](https://github.co
 
 ## Configuration
 
-See [examples/config.yaml](./examples/config.yaml) for all supported configuration values with explanations.
+See [cmd/testdata/config.yaml](./cmd/testdata/config.yaml) for all supported configuration values with explanations.
 
 JSON based configuration files are also supported in addition to YAML.
 

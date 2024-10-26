@@ -13,13 +13,13 @@ import (
 )
 
 func main() {
-	os.Exit(run())
-}
-
-func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
+	os.Exit(run(ctx))
+}
+
+func run(ctx context.Context) int {
 	flags := createFlags()
 	if err := flags.Parse(os.Args[1:]); err != nil {
 		return handleError(err)

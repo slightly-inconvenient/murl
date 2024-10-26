@@ -1,6 +1,6 @@
 server:
   # Address to bind the server listener to
-  address: ":8080"
+  address: "localhost:8080"
 
   # Required if TLS is wanted. If omitted, murl defaults to serving without TLS.
   #tls:
@@ -36,7 +36,7 @@ routes:
   # - GetQuery: Extracts a query parameter from the request. Repeated query params are not supported following the Go http request query params get API.
   # - GetHeader: Extracts a header value from the request. Repeated header values are not supported following the Go http request header get API.
   params:
-    path: '{{.GetParam "rest"}}'
+    path: '{{.GetPath "rest"}}'
     host: '{{.GetEnv "EXAMPLE_HOST"}}'
     query: '{{.GetQuery "query"}}'
     contentType: '{{.GetHeader "content-type"}}'
