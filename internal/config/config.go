@@ -11,6 +11,7 @@ import (
 )
 
 type RouteEnvironment struct {
+	// Allowlist is the list of environment variables a route may consume.
 	Allowlist []string `yaml:"allowlist" json:"allowlist"`
 }
 
@@ -38,37 +39,65 @@ type RouteDocumentation struct {
 }
 
 type Route struct {
-	Path          string             `yaml:"path" json:"path"`
-	Aliases       []string           `yaml:"aliases" json:"aliases"`
+	// Path defines the absolute path to match against.
+	Path string `yaml:"path" json:"path"`
+
+	// Aliases are additional absolute paths to match against.
+	Aliases []string `yaml:"aliases" json:"aliases"`
+
+	// Documentation defines the human-readable documentation attributes for the route.
 	Documentation RouteDocumentation `yaml:"documentation" json:"documentation"`
-	Environment   RouteEnvironment   `yaml:"environment" json:"environment"`
-	Params        map[string]string  `yaml:"params" json:"params"`
-	Checks        []RouteCheck       `yaml:"checks" json:"checks"`
-	Redirect      RouteRedirect      `yaml:"redirect" json:"redirect"`
+
+	// Environment defines the environment variables the route may consume.
+	Environment RouteEnvironment `yaml:"environment" json:"environment"`
+
+	// Params are the template parameters to extract and build the redirect URL from.
+	Params map[string]string `yaml:"params" json:"params"`
+
+	// Checks are the conditions to evaluate before redirecting.
+	Checks []RouteCheck `yaml:"checks" json:"checks"`
+
+	// Redirect is the redirect configuration.
+	Redirect RouteRedirect `yaml:"redirect" json:"redirect"`
 }
 
 type ServerTLSConfig struct {
+	// Cert is the path to the server TLS certificate file.
 	Cert string `yaml:"cert" json:"cert"`
-	Key  string `yaml:"key" json:"key"`
+
+	// Key is the path to the server TLS key file.
+	Key string `yaml:"key" json:"key"`
 }
 
 type ServerTemplatesConfig struct {
+	// Root is the path to the server root page template file.
 	Root string `yaml:"root" json:"root"`
 }
 
 type ServerDocumentationConfig struct {
-	Path      string                `yaml:"path" json:"path"`
+	// Path defines the route to serve the documentation from.
+	Path string `yaml:"path" json:"path"`
+
+	// Templates defines the server documentation templates.
 	Templates ServerTemplatesConfig `yaml:"templates" json:"templates"`
 }
 
 type Server struct {
-	Address       string                    `yaml:"address" json:"address"`
-	TLS           ServerTLSConfig           `yaml:"tls" json:"tls"`
+	// Address is the server address to serve on.
+	Address string `yaml:"address" json:"address"`
+
+	// TLS is the server TLS configuration. If omitted, the server will serve over plain HTTP.
+	TLS ServerTLSConfig `yaml:"tls" json:"tls"`
+
+	// Documentation is the server documentation rendering configuration.
 	Documentation ServerDocumentationConfig `yaml:"documentation" json:"documentation"`
 }
 
 type Config struct {
-	Server Server  `yaml:"server" json:"server"`
+	// Server defines the instance wide serving configuration.
+	Server Server `yaml:"server" json:"server"`
+
+	// Routes defines the routes to expose as redirects.
 	Routes []Route `yaml:"routes" json:"routes"`
 }
 
