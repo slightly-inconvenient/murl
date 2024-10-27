@@ -45,19 +45,26 @@ type RouteRedirect struct {
 	url *template.Template
 }
 
+type InputRouteDocumentation struct {
+	// Title is a human-readable title for the route.
+	Title string `yaml:"title" json:"title"`
+
+	// Description is a human-readable description of the route.
+	Description string `yaml:"description" json:"description"`
+}
+
 type InputRoute struct {
-	Path        string                `yaml:"path" json:"path"`
-	Aliases     []string              `yaml:"aliases" json:"aliases"`
-	Description string                `yaml:"description" json:"description"`
-	Environment InputRouteEnvironment `yaml:"environment" json:"environment"`
-	Params      map[string]string     `yaml:"params" json:"params"`
-	Checks      []InputRouteCheck     `yaml:"checks" json:"checks"`
-	Redirect    InputRouteRedirect    `yaml:"redirect" json:"redirect"`
+	Path          string                  `yaml:"path" json:"path"`
+	Aliases       []string                `yaml:"aliases" json:"aliases"`
+	Documentation InputRouteDocumentation `yaml:"documentation" json:"documentation"`
+	Environment   InputRouteEnvironment   `yaml:"environment" json:"environment"`
+	Params        map[string]string       `yaml:"params" json:"params"`
+	Checks        []InputRouteCheck       `yaml:"checks" json:"checks"`
+	Redirect      InputRouteRedirect      `yaml:"redirect" json:"redirect"`
 }
 
 type Route struct {
 	paths       []string
-	description string
 	environment RouteEnvironment
 	params      map[string]*template.Template
 	checks      []RouteCheck
@@ -72,8 +79,7 @@ func NewRoutes(routes []InputRoute) ([]Route, error) {
 
 	for idx, route := range routes {
 		resultRoute := Route{
-			valid:       true,
-			description: route.Description,
+			valid: true,
 		}
 
 		paths, err := parseRoutePaths(route.Path, route.Aliases)

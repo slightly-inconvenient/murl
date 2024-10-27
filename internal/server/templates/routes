@@ -1,0 +1,12 @@
+# Available Routes
+
+{{- range .}}
+{{- if .Documentation.Title }}
+## {{.Documentation.Title}}
+
+{{- if .Documentation.Description }}
+{{.Documentation.Description}}
+{{- end}}
+{{- end}}
+
+{{- end}}

@@ -11,9 +11,12 @@ type routeTestTransform func(*murl.InputRoute)
 
 func buildTestRoute(transforms ...routeTestTransform) murl.InputRoute {
 	result := murl.InputRoute{
-		Path:        "/example/{rest}",
-		Aliases:     []string{"/example2/{rest}"},
-		Description: "An example route that picks params from the env, path, query, and headers",
+		Path:    "/example/{rest}",
+		Aliases: []string{"/example2/{rest}"},
+		Documentation: murl.InputRouteDocumentation{
+			Title:       "Example Route",
+			Description: "An example route that picks params from the env, path, query, and headers",
+		},
 		Environment: murl.InputRouteEnvironment{
 			Allowlist: []string{"EXAMPLE_HOST"},
 		},

@@ -55,7 +55,9 @@ routes:
 - path: /example/{rest}
   aliases:
   - /example2/{rest}
-  description: "An example route that picks params from the env, path, query, and headers"
+  documentation: 
+    title: "Example route"
+    description: "An example route that picks params from the env, path, query, and headers"
   environment:
     allowlist:
       - EXAMPLE_HOST
@@ -89,7 +91,10 @@ routes:
       "aliases": [
         "/example2/{rest}"
       ],
-      "description": "An example route that picks params from the env, path, query, and headers",
+      "documentation": {
+        "title": "Example route",
+        "description": "An example route that picks params from the env, path, query, and headers"
+      },
       "environment": {
         "allowlist": [
           "EXAMPLE_HOST"

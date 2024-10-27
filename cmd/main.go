@@ -30,7 +30,7 @@ func run(ctx context.Context) int {
 		return handleError(err)
 	}
 
-	serverConfig, err := server.NewConfig(serverConfigInput)
+	serverConfig, err := server.NewConfig(serverConfigInput, routesInput)
 	if err != nil {
 		return handleError(err)
 	}
@@ -40,7 +40,7 @@ func run(ctx context.Context) int {
 		return handleError(err)
 	}
 
-	if err := server.Run(ctx, serverConfig, murl.NewMux(routes)); err != nil {
+	if err := server.Run(ctx, serverConfig, murl.NewHandlers(routes)); err != nil {
 		return handleError(err)
 	}
 

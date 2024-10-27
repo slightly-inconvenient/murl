@@ -6,8 +6,19 @@ go_library(
         "config.go",
         "server.go",
     ],
+    embedsrcs = [
+        "templates/root",
+        "templates/routes",
+    ],
     importpath = "github.com/slightly-inconvenient/murl/internal/server",
     visibility = ["//:__subpackages__"],
+    deps = [
+        "//:murl",
+        "@com_github_yuin_goldmark//:goldmark",
+        "@com_github_yuin_goldmark//extension",
+        "@com_github_yuin_goldmark//parser",
+        "@com_github_yuin_goldmark//renderer/html",
+    ],
 )
 
 go_test(
@@ -19,6 +30,7 @@ go_test(
     ],
     deps = [
         ":server",
+        "//:murl",
         "//internal/testtls",
     ],
 )

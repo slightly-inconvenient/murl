@@ -5,11 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/slightly-inconvenient/murl"
 )
 
-func Run(ctx context.Context, config Config, mux *http.ServeMux) error {
+func Run(ctx context.Context, config Config, handlers []murl.Handler) error {
 	if !config.valid {
 		panic(errors.New("server config has not been validated - create the config using NewServerConfig"))
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET "+config.documentation.path, createDocsHandler(config.documentation.content))
+	for _, handler := range handlers {
+		mux.HandleFunc(handler.Path(), handler.Handler())
 	}
 
 	server := &http.Server{
@@ -21,7 +29,7 @@ func Run(ctx context.Context, config Config, mux *http.ServeMux) error {
 
 	go func() {
 		<-ctx.Done()
-		server.Shutdown(context.Background())
+		_ = server.Shutdown(context.Background())
 		close(closed)
 	}()
 
@@ -41,4 +49,11 @@ func Run(ctx context.Context, config Config, mux *http.ServeMux) error {
 	}
 
 	return result
+}
+
+func createDocsHandler(documentation []byte) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write(documentation)
+	}
 }

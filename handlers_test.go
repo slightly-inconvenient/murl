@@ -54,7 +54,7 @@ func TestHandler(t *testing.T) {
 			}
 		}()
 
-		murl.NewMux([]murl.Route{{}})
+		murl.NewHandlers([]murl.Route{{}})
 	})
 
 	tests := []struct {
@@ -161,7 +161,12 @@ func TestHandler(t *testing.T) {
 				t.Fatalf("failed to create test routes: %v", err)
 			}
 
-			mux := murl.NewMux(routes)
+			handlers := murl.NewHandlers(routes)
+			mux := http.NewServeMux()
+			for _, handler := range handlers {
+				mux.HandleFunc(handler.Path(), handler.Handler())
+			}
+
 			rec := httptest.NewRecorder()
 			mux.ServeHTTP(rec, test.req)
 

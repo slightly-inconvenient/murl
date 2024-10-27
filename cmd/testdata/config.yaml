@@ -7,6 +7,28 @@ server:
   #  cert: /path/to/tls/certificate
   #  key:  /path/to/tls/key
 
+  documentation:
+    # Templates may be provided to override the built in templates.
+    templates: {}
+      # A custom root golang text/template for rendering the root page may be provided.
+      # The template is given a copy of the raw routes configuration as input and is
+      # expected to produce valid GitHub Flavored Markdown.
+      #
+      # Defaults to rendering documentation for all routes.
+      # See internal/server/templates/root.md.tmpl for details.
+      #
+      # root: |
+      #  # My special documentation page
+      #  Whatever you'd like to add to the page context
+      #  
+      #  The default routes template may be rendered with:
+      #  {{ template "routes" .}}
+    
+    # A custom path to the documentation root page.
+    # Default is site root ("/").
+    #
+    # path: /docs
+
 routes:
 
 - # Path to match against. Currently only GET requests are supported and "GET " is automatically prefixed to the path.
@@ -19,8 +41,18 @@ routes:
   aliases:
     - /example2/{rest}
   
-  # Each route may be accompanied by a human friendly description for documentation purposes.
-  description: "An example route that picks params from the env, path, query, and headers"
+  # Each route may be accompanied by a human friendly title and description.
+  # These are used to render the root page containing the routes documentation.
+  #
+  # With the default template the following constraints apply:
+  # - If title is omitted the route is not rendered in the documentation.
+  # - If description is omitted the title, path and aliases are rendered but a description section omitted.
+  #
+  # GitHub Flavored Markdown is supported through https://github.com/yuin/goldmark library.
+  documentation: 
+    title: Sample route
+    description: |
+      An example route that picks params from the env, path, query, and headers
 
   # All environment variables made available to the route must be explicitly allow listed.
   # This is to prevent accidental use of sensitive environment variables if an input param is used to determine the env variable name.

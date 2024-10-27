@@ -40,5 +40,6 @@ func ParseConfigFile(path string) (server.InputConfig, []murl.InputRoute, error)
 	default:
 		return server.InputConfig{}, nil, fmt.Errorf("unsupported configuration file extension: %q (supported are .yaml, .yml and .json)", filepath.Ext(path))
 	}
+
 	return config.Server, config.Routes, nil
 }

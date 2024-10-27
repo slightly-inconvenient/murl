@@ -39,18 +39,31 @@ func (s *paramsInput) GetEnv(key string) string {
 	return s.getEnv(key)
 }
 
-func NewMux(routes []Route) *http.ServeMux {
-	mux := http.NewServeMux()
+type Handler struct {
+	path    string
+	handler http.HandlerFunc
+}
+
+func (s Handler) Path() string {
+	return s.path
+}
+
+func (s Handler) Handler() http.HandlerFunc {
+	return s.handler
+}
+
+func NewHandlers(routes []Route) []Handler {
+	handlers := make([]Handler, 0, len(routes))
 	for idx, route := range routes {
 		if !route.valid {
 			panic(fmt.Errorf("route at index %d has not been validated - create the routes using NewRoutes", idx))
 		}
 		handler := createRouteHandler(route)
 		for _, path := range route.paths {
-			mux.HandleFunc("GET "+path, handler)
+			handlers = append(handlers, Handler{path: "GET " + path, handler: handler})
 		}
 	}
-	return mux
+	return handlers
 }
 
 func createRouteHandler(route Route) http.HandlerFunc {
