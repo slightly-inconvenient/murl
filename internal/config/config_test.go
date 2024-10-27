@@ -141,7 +141,7 @@ routes:
 		{
 			description:   "invalid YAML config",
 			configPath:    writeConfigYAML(t, "server: []\nroutes: []\n"),
-			expectedError: errors.New("failed to parse configuration file: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into server.InputConfig"),
+			expectedError: errors.New("failed to parse configuration file: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!seq into config.Server"),
 		},
 		{
 			description:   "invalid JSONconfig",
@@ -154,7 +154,7 @@ routes:
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
 
-			_, _, err := config.ParseConfigFile(test.configPath)
+			_, err := config.ParseConfigFile(test.configPath)
 			if test.expectedError == nil && err == nil {
 				return
 			}

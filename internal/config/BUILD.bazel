@@ -5,11 +5,7 @@ go_library(
     srcs = ["config.go"],
     importpath = "github.com/slightly-inconvenient/murl/internal/config",
     visibility = ["//:__subpackages__"],
-    deps = [
-        "//internal/route",
-        "//internal/server",
-        "@in_gopkg_yaml_v3//:yaml_v3",
-    ],
+    deps = ["@in_gopkg_yaml_v3//:yaml_v3"],
 )
 
 go_test(

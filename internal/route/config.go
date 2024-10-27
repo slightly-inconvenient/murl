@@ -6,24 +6,11 @@ import (
 	"text/template"
 
 	"github.com/google/cel-go/cel"
+	"github.com/slightly-inconvenient/murl/internal/config"
 )
-
-type InputRouteEnvironment struct {
-	Allowlist []string `yaml:"allowlist" json:"allowlist"`
-}
 
 type RouteEnvironment struct {
 	allowedEnvVariables map[string]bool
-}
-
-type InputRouteCheck struct {
-	// Expr is a CEL expression evaluated against the request.
-	// If the expression evaluates to true, the check passes.
-	// If the expression evaluates to anything else, the check fails.
-	Expr string `yaml:"expr" json:"expr"`
-
-	// Error is the error message to return if the check fails.
-	Error string `yaml:"error" json:"error"`
 }
 
 type RouteCheck struct {
@@ -36,31 +23,8 @@ type RouteCheck struct {
 	error *template.Template
 }
 
-type InputRouteRedirect struct {
-	// URL is the template to build the redirect URL from.
-	URL string `yaml:"url" json:"url"`
-}
-
 type RouteRedirect struct {
 	url *template.Template
-}
-
-type InputRouteDocumentation struct {
-	// Title is a human-readable title for the route.
-	Title string `yaml:"title" json:"title"`
-
-	// Description is a human-readable description of the route.
-	Description string `yaml:"description" json:"description"`
-}
-
-type InputRoute struct {
-	Path          string                  `yaml:"path" json:"path"`
-	Aliases       []string                `yaml:"aliases" json:"aliases"`
-	Documentation InputRouteDocumentation `yaml:"documentation" json:"documentation"`
-	Environment   InputRouteEnvironment   `yaml:"environment" json:"environment"`
-	Params        map[string]string       `yaml:"params" json:"params"`
-	Checks        []InputRouteCheck       `yaml:"checks" json:"checks"`
-	Redirect      InputRouteRedirect      `yaml:"redirect" json:"redirect"`
 }
 
 type Route struct {
@@ -74,7 +38,7 @@ type Route struct {
 
 // NewRoutes parses the input routes and returns a validated route for each.
 // A validated route guarantees that all required fields are present and passed all static validation such as pre-compilation of templates.
-func NewRoutes(routes []InputRoute) ([]Route, error) {
+func NewRoutes(routes []config.Route) ([]Route, error) {
 	result := make([]Route, 0, len(routes))
 
 	for idx, route := range routes {

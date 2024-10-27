@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/slightly-inconvenient/murl/internal/config"
 	"github.com/slightly-inconvenient/murl/internal/route"
 )
 
@@ -59,16 +60,16 @@ func TestHandler(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		routes        []route.InputRoute
+		routes        []config.Route
 		req           *http.Request
 		checkResponse func(*httptest.ResponseRecorder) error
 	}{
 		{
 			description: "simple route with no params",
-			routes: []route.InputRoute{
+			routes: []config.Route{
 				{
 					Path: "/example",
-					Redirect: route.InputRouteRedirect{
+					Redirect: config.RouteRedirect{
 						URL: "https://example.com",
 					},
 				},
@@ -78,13 +79,13 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "complex params route",
-			routes: []route.InputRoute{
+			routes: []config.Route{
 				{
 					Path: "/example/{id}",
-					Environment: route.InputRouteEnvironment{
+					Environment: config.RouteEnvironment{
 						Allowlist: []string{"TEST_KEY_HOST"},
 					},
-					Redirect: route.InputRouteRedirect{
+					Redirect: config.RouteRedirect{
 						URL: "https://{{.host}}/id/{{.id}}?query={{.q}}&header={{.h}}&envBlocked=\"{{.envBlocked}}\"",
 					},
 					Params: map[string]string{
@@ -94,7 +95,7 @@ func TestHandler(t *testing.T) {
 						"host":       `{{.GetEnv "TEST_KEY_HOST"}}`,
 						"envBlocked": `{{.GetEnv "TEST_KEY_HOST_BLOCKED"}}`,
 					},
-					Checks: []route.InputRouteCheck{
+					Checks: []config.RouteCheck{
 						{
 							Expr:  `q != ""`,
 							Error: "query variable q is required",
@@ -116,16 +117,16 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "route with failing checks",
-			routes: []route.InputRoute{
+			routes: []config.Route{
 				{
 					Path: "/example",
-					Redirect: route.InputRouteRedirect{
+					Redirect: config.RouteRedirect{
 						URL: "https://example.com/id/{{.id}}",
 					},
 					Params: map[string]string{
 						"id": `{{.GetQuery "id"}}`,
 					},
-					Checks: []route.InputRouteCheck{
+					Checks: []config.RouteCheck{
 						{
 							Expr:  `id != ""`,
 							Error: "id is required",
@@ -138,11 +139,11 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "route with aliases",
-			routes: []route.InputRoute{
+			routes: []config.Route{
 				{
 					Path:    "/example",
 					Aliases: []string{"/example-alias"},
-					Redirect: route.InputRouteRedirect{
+					Redirect: config.RouteRedirect{
 						URL: "https://example.com",
 					},
 				},

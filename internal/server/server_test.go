@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/slightly-inconvenient/murl/internal/config"
 	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/slightly-inconvenient/murl/internal/server"
 	"github.com/slightly-inconvenient/murl/internal/testtls"
@@ -86,18 +87,18 @@ func TestRun(t *testing.T) {
 
 	tests := []struct {
 		description string
-		config      server.InputConfig
-		routes      []route.InputRoute
+		config      config.Server
+		routes      []config.Route
 		requestPath string
 		check       func(t *testing.T, resp *http.Response)
 	}{
 		{
 			description: "serves routes without TLS",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8080",
 			},
-			routes: []route.InputRoute{
-				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []config.Route{
+				{Path: "/test", Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "/test",
 			check: func(t *testing.T, resp *http.Response) {
@@ -108,15 +109,15 @@ func TestRun(t *testing.T) {
 		},
 		{
 			description: "serves routes with TLS",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8443",
-				TLS: server.InputTLSConfig{
+				TLS: config.ServerTLSConfig{
 					Cert: certFile,
 					Key:  keyFile,
 				},
 			},
-			routes: []route.InputRoute{
-				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []config.Route{
+				{Path: "/test", Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "/test",
 			check: func(t *testing.T, resp *http.Response) {
@@ -127,31 +128,31 @@ func TestRun(t *testing.T) {
 		},
 		{
 			description: "serves docs from default path",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8081",
 			},
-			routes:      []route.InputRoute{},
+			routes:      []config.Route{},
 			requestPath: "",
 			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
 		},
 		{
 			description: "serves docs from custom path",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8082",
-				Documentation: server.InputDocumentationConfig{
+				Documentation: config.ServerDocumentationConfig{
 					Path: "/docs",
 				},
 			},
-			routes:      []route.InputRoute{},
+			routes:      []config.Route{},
 			requestPath: "/docs",
 			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
 		},
 		{
 			description: "serves custom docs template",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8083",
-				Documentation: server.InputDocumentationConfig{
-					Templates: server.InputTemplatesConfig{
+				Documentation: config.ServerDocumentationConfig{
+					Templates: config.ServerTemplatesConfig{
 						Root: `
 # Title
 test custom template with {{ range . }} {{ .Path }} {{ end }}
@@ -163,26 +164,26 @@ including default routes template
 					},
 				},
 			},
-			routes: []route.InputRoute{
-				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []config.Route{
+				{Path: "/test", Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "",
 			check:       checkDocs("<h1 id=\"title\">Title</h1>\n<p>test custom template with  /test</p>\n<p>including default routes template</p>\n<h1 id=\"available-routes\">Available Routes</h1>\n"),
 		},
 		{
 			description: "serves route docs",
-			config: server.InputConfig{
+			config: config.Server{
 				Address: "localhost:8084",
 			},
-			routes: []route.InputRoute{
+			routes: []config.Route{
 				{
 					Path:    "/test",
 					Aliases: []string{"/test-alias"},
-					Documentation: route.InputRouteDocumentation{
+					Documentation: config.RouteDocumentation{
 						Title:       "Test Route",
 						Description: "A test route",
 					},
-					Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"},
+					Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"},
 				},
 			},
 			requestPath: "",

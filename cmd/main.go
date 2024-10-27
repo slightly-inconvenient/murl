@@ -25,17 +25,17 @@ func run(ctx context.Context) int {
 		return handleError(err)
 	}
 
-	serverConfigInput, routesInput, err := config.ParseConfigFile(flags.Lookup("config").Value.String())
+	conf, err := config.ParseConfigFile(flags.Lookup("config").Value.String())
 	if err != nil {
 		return handleError(err)
 	}
 
-	serverConfig, err := server.NewConfig(serverConfigInput, routesInput)
+	serverConfig, err := server.NewConfig(conf.Server, conf.Routes)
 	if err != nil {
 		return handleError(err)
 	}
 
-	routes, err := route.NewRoutes(routesInput)
+	routes, err := route.NewRoutes(conf.Routes)
 	if err != nil {
 		return handleError(err)
 	}

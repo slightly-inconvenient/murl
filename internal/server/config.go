@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/slightly-inconvenient/murl/internal/route"
+	"github.com/slightly-inconvenient/murl/internal/config"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -19,29 +19,9 @@ import (
 //go:embed templates
 var templates embed.FS
 
-type InputTLSConfig struct {
-	Cert string `yaml:"cert" json:"cert"`
-	Key  string `yaml:"key" json:"key"`
-}
-
 type TLSConfig struct {
 	cert string
 	key  string
-}
-
-type InputTemplatesConfig struct {
-	Root string `yaml:"root" json:"root"`
-}
-
-type InputDocumentationConfig struct {
-	Path      string               `yaml:"path" json:"path"`
-	Templates InputTemplatesConfig `yaml:"templates" json:"templates"`
-}
-
-type InputConfig struct {
-	Address       string                   `yaml:"address" json:"address"`
-	TLS           InputTLSConfig           `yaml:"tls" json:"tls"`
-	Documentation InputDocumentationConfig `yaml:"documentation" json:"documentation"`
 }
 
 type DocumentationConfig struct {
@@ -57,48 +37,48 @@ type Config struct {
 }
 
 // NewConfig parses the input server configuration and returns a validated server configuration.
-func NewConfig(config InputConfig, routes []route.InputRoute) (Config, error) {
-	if config.Address == "" {
+func NewConfig(conf config.Server, routes []config.Route) (Config, error) {
+	if conf.Address == "" {
 		return Config{}, fmt.Errorf("server address is required")
 	}
 
-	if config.TLS.Cert != "" {
-		if config.TLS.Key == "" {
+	if conf.TLS.Cert != "" {
+		if conf.TLS.Key == "" {
 			return Config{}, fmt.Errorf("server TLS key is required when TLS cert is provided")
 		}
 
-		if _, err := os.Stat(config.TLS.Cert); errors.Is(err, os.ErrNotExist) {
-			return Config{}, fmt.Errorf("server TLS cert file at path %q does not exist", config.TLS.Cert)
+		if _, err := os.Stat(conf.TLS.Cert); errors.Is(err, os.ErrNotExist) {
+			return Config{}, fmt.Errorf("server TLS cert file at path %q does not exist", conf.TLS.Cert)
 		}
 	}
 
-	if config.TLS.Key != "" {
-		if config.TLS.Cert == "" {
+	if conf.TLS.Key != "" {
+		if conf.TLS.Cert == "" {
 			return Config{}, fmt.Errorf("server TLS cert is required when TLS key is provided")
 		}
 
-		if _, err := os.Stat(config.TLS.Key); errors.Is(err, os.ErrNotExist) {
-			return Config{}, fmt.Errorf("server TLS key file at path %q does not exist", config.TLS.Key)
+		if _, err := os.Stat(conf.TLS.Key); errors.Is(err, os.ErrNotExist) {
+			return Config{}, fmt.Errorf("server TLS key file at path %q does not exist", conf.TLS.Key)
 		}
 	}
 
-	documentation, err := renderDocumentation(config.Documentation, routes)
+	documentation, err := renderDocumentation(conf.Documentation, routes)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to render documentation: %w", err)
 	}
 
 	return Config{
-		address: config.Address,
+		address: conf.Address,
 		tls: TLSConfig{
-			cert: config.TLS.Cert,
-			key:  config.TLS.Key,
+			cert: conf.TLS.Cert,
+			key:  conf.TLS.Key,
 		},
 		documentation: documentation,
 		valid:         true,
 	}, nil
 }
 
-func renderDocumentation(config InputDocumentationConfig, routes []route.InputRoute) (DocumentationConfig, error) {
+func renderDocumentation(config config.ServerDocumentationConfig, routes []config.Route) (DocumentationConfig, error) {
 	tmpl, err := template.ParseFS(templates, "templates/*")
 	if err != nil {
 		return DocumentationConfig{}, fmt.Errorf("failed to parse documentation default templates: %w", err)
