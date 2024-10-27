@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -57,7 +57,7 @@ type Config struct {
 }
 
 // NewConfig parses the input server configuration and returns a validated server configuration.
-func NewConfig(config InputConfig, routes []murl.InputRoute) (Config, error) {
+func NewConfig(config InputConfig, routes []route.InputRoute) (Config, error) {
 	if config.Address == "" {
 		return Config{}, fmt.Errorf("server address is required")
 	}
@@ -98,7 +98,7 @@ func NewConfig(config InputConfig, routes []murl.InputRoute) (Config, error) {
 	}, nil
 }
 
-func renderDocumentation(config InputDocumentationConfig, routes []murl.InputRoute) (DocumentationConfig, error) {
+func renderDocumentation(config InputDocumentationConfig, routes []route.InputRoute) (DocumentationConfig, error) {
 	tmpl, err := template.ParseFS(templates, "templates/*")
 	if err != nil {
 		return DocumentationConfig{}, fmt.Errorf("failed to parse documentation default templates: %w", err)

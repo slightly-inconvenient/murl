@@ -1,6 +1,5 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@gazelle//:def.bzl", "gazelle")
-load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 # gazelle:prefix github.com/slightly-inconvenient/murl
 # gazelle:exclude .bazel/
@@ -30,28 +29,4 @@ buildifier(
     lint_mode = "warn",
     lint_warnings = ["all"],
     mode = "check",
-)
-
-go_library(
-    name = "murl",
-    srcs = [
-        "config.go",
-        "handlers.go",
-    ],
-    importpath = "github.com/slightly-inconvenient/murl",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_google_cel_go//cel:go_default_library",
-        "@com_github_google_cel_go//common/types:go_default_library",
-    ],
-)
-
-go_test(
-    name = "murl_test",
-    timeout = "short",
-    srcs = [
-        "config_test.go",
-        "handlers_test.go",
-    ],
-    deps = [":murl"],
 )

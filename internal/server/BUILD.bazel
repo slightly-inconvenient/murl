@@ -13,7 +13,7 @@ go_library(
     importpath = "github.com/slightly-inconvenient/murl/internal/server",
     visibility = ["//:__subpackages__"],
     deps = [
-        "//:murl",
+        "//internal/route",
         "@com_github_yuin_goldmark//:goldmark",
         "@com_github_yuin_goldmark//extension",
         "@com_github_yuin_goldmark//parser",
@@ -30,7 +30,7 @@ go_test(
     ],
     deps = [
         ":server",
-        "//:murl",
+        "//internal/route",
         "//internal/testtls",
     ],
 )

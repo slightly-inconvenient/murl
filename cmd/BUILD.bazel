@@ -13,8 +13,8 @@ go_library(
     importpath = "github.com/slightly-inconvenient/murl/cmd",
     visibility = ["//visibility:private"],
     deps = [
-        "//:murl",
         "//internal/config",
+        "//internal/route",
         "//internal/server",
     ],
 )

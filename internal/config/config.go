@@ -7,17 +7,17 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/slightly-inconvenient/murl/internal/server"
 	"gopkg.in/yaml.v3"
 )
 
 type inputConfig struct {
 	Server server.InputConfig `yaml:"server" json:"server"`
-	Routes []murl.InputRoute  `yaml:"routes" json:"routes"`
+	Routes []route.InputRoute `yaml:"routes" json:"routes"`
 }
 
-func ParseConfigFile(path string) (server.InputConfig, []murl.InputRoute, error) {
+func ParseConfigFile(path string) (server.InputConfig, []route.InputRoute, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return server.InputConfig{}, nil, fmt.Errorf("failed to read configuration file at %s: %w", path, err)

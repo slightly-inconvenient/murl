@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/slightly-inconvenient/murl"
 	"github.com/slightly-inconvenient/murl/internal/config"
+	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/slightly-inconvenient/murl/internal/server"
 )
 
@@ -35,12 +35,12 @@ func run(ctx context.Context) int {
 		return handleError(err)
 	}
 
-	routes, err := murl.NewRoutes(routesInput)
+	routes, err := route.NewRoutes(routesInput)
 	if err != nil {
 		return handleError(err)
 	}
 
-	if err := server.Run(ctx, serverConfig, murl.NewHandlers(routes)); err != nil {
+	if err := server.Run(ctx, serverConfig, route.NewHandlers(routes)); err != nil {
 		return handleError(err)
 	}
 

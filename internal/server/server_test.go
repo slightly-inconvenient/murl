@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/slightly-inconvenient/murl/internal/server"
 	"github.com/slightly-inconvenient/murl/internal/testtls"
 )
@@ -87,7 +87,7 @@ func TestRun(t *testing.T) {
 	tests := []struct {
 		description string
 		config      server.InputConfig
-		routes      []murl.InputRoute
+		routes      []route.InputRoute
 		requestPath string
 		check       func(t *testing.T, resp *http.Response)
 	}{
@@ -96,8 +96,8 @@ func TestRun(t *testing.T) {
 			config: server.InputConfig{
 				Address: "localhost:8080",
 			},
-			routes: []murl.InputRoute{
-				{Path: "/test", Redirect: murl.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []route.InputRoute{
+				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "/test",
 			check: func(t *testing.T, resp *http.Response) {
@@ -115,8 +115,8 @@ func TestRun(t *testing.T) {
 					Key:  keyFile,
 				},
 			},
-			routes: []murl.InputRoute{
-				{Path: "/test", Redirect: murl.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []route.InputRoute{
+				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "/test",
 			check: func(t *testing.T, resp *http.Response) {
@@ -130,7 +130,7 @@ func TestRun(t *testing.T) {
 			config: server.InputConfig{
 				Address: "localhost:8081",
 			},
-			routes:      []murl.InputRoute{},
+			routes:      []route.InputRoute{},
 			requestPath: "",
 			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
 		},
@@ -142,7 +142,7 @@ func TestRun(t *testing.T) {
 					Path: "/docs",
 				},
 			},
-			routes:      []murl.InputRoute{},
+			routes:      []route.InputRoute{},
 			requestPath: "/docs",
 			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
 		},
@@ -163,8 +163,8 @@ including default routes template
 					},
 				},
 			},
-			routes: []murl.InputRoute{
-				{Path: "/test", Redirect: murl.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
+			routes: []route.InputRoute{
+				{Path: "/test", Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "",
 			check:       checkDocs("<h1 id=\"title\">Title</h1>\n<p>test custom template with  /test</p>\n<p>including default routes template</p>\n<h1 id=\"available-routes\">Available Routes</h1>\n"),
@@ -174,15 +174,15 @@ including default routes template
 			config: server.InputConfig{
 				Address: "localhost:8084",
 			},
-			routes: []murl.InputRoute{
+			routes: []route.InputRoute{
 				{
 					Path:    "/test",
 					Aliases: []string{"/test-alias"},
-					Documentation: murl.InputRouteDocumentation{
+					Documentation: route.InputRouteDocumentation{
 						Title:       "Test Route",
 						Description: "A test route",
 					},
-					Redirect: murl.InputRouteRedirect{URL: "http://localhost:8080/test2"},
+					Redirect: route.InputRouteRedirect{URL: "http://localhost:8080/test2"},
 				},
 			},
 			requestPath: "",
@@ -197,7 +197,7 @@ including default routes template
 			ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancelCtx()
 
-			routes, err := murl.NewRoutes(test.routes)
+			routes, err := route.NewRoutes(test.routes)
 			if err != nil {
 				t.Fatalf("expected create routes to succeed but got error: %s", err)
 			}
@@ -209,7 +209,7 @@ including default routes template
 			}
 
 			go func() {
-				errCh <- server.Run(ctx, config, murl.NewHandlers(routes))
+				errCh <- server.Run(ctx, config, route.NewHandlers(routes))
 				close(errCh)
 			}()
 

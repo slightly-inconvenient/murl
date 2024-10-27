@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 	"github.com/slightly-inconvenient/murl/internal/server"
 	"github.com/slightly-inconvenient/murl/internal/testtls"
 )
@@ -29,7 +29,7 @@ func TestConfig_Succes(t *testing.T) {
 	t.Run("http server", func(t *testing.T) {
 		t.Parallel()
 		input := buildTestServerConfig()
-		_, err := server.NewConfig(input, []murl.InputRoute{})
+		_, err := server.NewConfig(input, []route.InputRoute{})
 		if err != nil {
 			t.Fatalf("expected create server config to succeed but got error: %s", err)
 		}
@@ -44,7 +44,7 @@ func TestConfig_Succes(t *testing.T) {
 				Key:  keyFile,
 			}
 		})
-		_, err := server.NewConfig(input, []murl.InputRoute{})
+		_, err := server.NewConfig(input, []route.InputRoute{})
 		if err != nil {
 			t.Fatalf("expected create server config to succeed but got error: %s", err)
 		}
@@ -58,7 +58,7 @@ func TestConfig_Failures(t *testing.T) {
 	tests := []struct {
 		description   string
 		config        server.InputConfig
-		routes        []murl.InputRoute
+		routes        []route.InputRoute
 		expectedError error
 	}{
 		{
@@ -66,7 +66,7 @@ func TestConfig_Failures(t *testing.T) {
 			config: buildTestServerConfig(func(ic *server.InputConfig) {
 				ic.Address = ""
 			}),
-			routes:        []murl.InputRoute{},
+			routes:        []route.InputRoute{},
 			expectedError: errors.New("server address is required"),
 		},
 		{
@@ -76,7 +76,7 @@ func TestConfig_Failures(t *testing.T) {
 					Cert: "/path/does/not/exist",
 				}
 			}),
-			routes:        []murl.InputRoute{},
+			routes:        []route.InputRoute{},
 			expectedError: errors.New("server TLS key is required when TLS cert is provided"),
 		},
 		{
@@ -86,7 +86,7 @@ func TestConfig_Failures(t *testing.T) {
 					Key: "/path/does/not/exist",
 				}
 			}),
-			routes:        []murl.InputRoute{},
+			routes:        []route.InputRoute{},
 			expectedError: errors.New("server TLS cert is required when TLS key is provided"),
 		},
 		{
@@ -97,7 +97,7 @@ func TestConfig_Failures(t *testing.T) {
 					Key:  "/path/does/not/exist",
 				}
 			}),
-			routes:        []murl.InputRoute{},
+			routes:        []route.InputRoute{},
 			expectedError: errors.New("server TLS key file at path \"/path/does/not/exist\" does not exist"),
 		},
 		{
@@ -108,7 +108,7 @@ func TestConfig_Failures(t *testing.T) {
 					Key:  keyFile,
 				}
 			}),
-			routes:        []murl.InputRoute{},
+			routes:        []route.InputRoute{},
 			expectedError: errors.New("server TLS cert file at path \"/path/does/not/exist\" does not exist"),
 		},
 	}

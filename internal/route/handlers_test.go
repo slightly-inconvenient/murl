@@ -1,4 +1,4 @@
-package murl_test
+package route_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 )
 
 func createResponseChecker(expectedStatusCode int, expectedLocationOrBody string) func(*httptest.ResponseRecorder) error {
@@ -54,21 +54,21 @@ func TestHandler(t *testing.T) {
 			}
 		}()
 
-		murl.NewHandlers([]murl.Route{{}})
+		route.NewHandlers([]route.Route{{}})
 	})
 
 	tests := []struct {
 		description   string
-		routes        []murl.InputRoute
+		routes        []route.InputRoute
 		req           *http.Request
 		checkResponse func(*httptest.ResponseRecorder) error
 	}{
 		{
 			description: "simple route with no params",
-			routes: []murl.InputRoute{
+			routes: []route.InputRoute{
 				{
 					Path: "/example",
-					Redirect: murl.InputRouteRedirect{
+					Redirect: route.InputRouteRedirect{
 						URL: "https://example.com",
 					},
 				},
@@ -78,13 +78,13 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "complex params route",
-			routes: []murl.InputRoute{
+			routes: []route.InputRoute{
 				{
 					Path: "/example/{id}",
-					Environment: murl.InputRouteEnvironment{
+					Environment: route.InputRouteEnvironment{
 						Allowlist: []string{"TEST_KEY_HOST"},
 					},
-					Redirect: murl.InputRouteRedirect{
+					Redirect: route.InputRouteRedirect{
 						URL: "https://{{.host}}/id/{{.id}}?query={{.q}}&header={{.h}}&envBlocked=\"{{.envBlocked}}\"",
 					},
 					Params: map[string]string{
@@ -94,7 +94,7 @@ func TestHandler(t *testing.T) {
 						"host":       `{{.GetEnv "TEST_KEY_HOST"}}`,
 						"envBlocked": `{{.GetEnv "TEST_KEY_HOST_BLOCKED"}}`,
 					},
-					Checks: []murl.InputRouteCheck{
+					Checks: []route.InputRouteCheck{
 						{
 							Expr:  `q != ""`,
 							Error: "query variable q is required",
@@ -116,16 +116,16 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "route with failing checks",
-			routes: []murl.InputRoute{
+			routes: []route.InputRoute{
 				{
 					Path: "/example",
-					Redirect: murl.InputRouteRedirect{
+					Redirect: route.InputRouteRedirect{
 						URL: "https://example.com/id/{{.id}}",
 					},
 					Params: map[string]string{
 						"id": `{{.GetQuery "id"}}`,
 					},
-					Checks: []murl.InputRouteCheck{
+					Checks: []route.InputRouteCheck{
 						{
 							Expr:  `id != ""`,
 							Error: "id is required",
@@ -138,11 +138,11 @@ func TestHandler(t *testing.T) {
 		},
 		{
 			description: "route with aliases",
-			routes: []murl.InputRoute{
+			routes: []route.InputRoute{
 				{
 					Path:    "/example",
 					Aliases: []string{"/example-alias"},
-					Redirect: murl.InputRouteRedirect{
+					Redirect: route.InputRouteRedirect{
 						URL: "https://example.com",
 					},
 				},
@@ -156,12 +156,12 @@ func TestHandler(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
 
-			routes, err := murl.NewRoutes(test.routes)
+			routes, err := route.NewRoutes(test.routes)
 			if err != nil {
 				t.Fatalf("failed to create test routes: %v", err)
 			}
 
-			handlers := murl.NewHandlers(routes)
+			handlers := route.NewHandlers(routes)
 			mux := http.NewServeMux()
 			for _, handler := range handlers {
 				mux.HandleFunc(handler.Path(), handler.Handler())

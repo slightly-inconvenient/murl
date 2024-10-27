@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/slightly-inconvenient/murl"
+	"github.com/slightly-inconvenient/murl/internal/route"
 )
 
-func Run(ctx context.Context, config Config, handlers []murl.Handler) error {
+func Run(ctx context.Context, config Config, handlers []route.Handler) error {
 	if !config.valid {
 		panic(errors.New("server config has not been validated - create the config using NewServerConfig"))
 	}
