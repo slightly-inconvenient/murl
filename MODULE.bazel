@@ -38,7 +38,7 @@ use_repo(
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "distroless_static",
-    digest = "sha256:69830f29ed7545c762777507426a412f97dad3d8d32bae3e74ad3fb6160917ea",
+    digest = "sha256:3a03fc0826340c7deb82d4755ca391bef5adcedb8892e58412e1a6008199fa91",
     image = "gcr.io/distroless/static",
     platforms = [
         "linux/amd64",

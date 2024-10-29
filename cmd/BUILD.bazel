@@ -5,7 +5,7 @@ load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@aspect_bazel_lib//lib:testing.bzl", "assert_archive_contains")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_push")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_load", "oci_push")
 
 go_library(
     name = "cmd_lib",
@@ -39,7 +39,7 @@ tar(
     name = "app_layer",
     srcs = [":cmd"],
     mtree = [
-        "murl uid=0 gid=0 mode=0755 time=1672560000 type=file content=$(location :cmd)",
+        "murl uid=65532 gid=65532 mode=0755 time=1672560000 type=file content=$(location :cmd)",
     ],
     visibility = ["//visibility:public"],
 )
@@ -72,6 +72,18 @@ platform_transition_filegroup(
     srcs = [":image_src"],
     target_platform = "@rules_go//go/toolchain:linux_amd64",
     visibility = ["//visibility:__pkg__"],
+)
+
+oci_load(
+    name = "image_load_linux_amd64",
+    image = ":image_linux_amd64",
+    repo_tags = ["ghcr.io/slightly-inconvenient/murl:local"],
+)
+
+oci_load(
+    name = "image_load_linux_arm64",
+    image = ":image_linux_arm64",
+    repo_tags = ["ghcr.io/slightly-inconvenient/murl:local"],
 )
 
 oci_image_index(
