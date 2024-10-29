@@ -12,16 +12,36 @@ Each url mapping supports:
 - Checking extracted params using the [Common Expression Language](https://github.com/google/cel-go)
 - Building a redirect URL using [templates](https://pkg.go.dev/text/template)
 
-## Installation
-
-MURL is available either as a binary through [GitHub Releases](https://github.com/slightly-inconvenient/murl/releases/latest) or as a multiarch OCI image through GitHub Container Registry [packages](https://github.com/slightly-inconvenient/murl/pkgs/container/murl).
-
 ## Configuration
 
 See [cmd/testdata/config.yaml](./cmd/testdata/config.yaml) for all supported configuration values with explanations.
 
 JSON based configuration files are also supported in addition to YAML.
 
-## Execution
+## Usage
 
-The CLI takes a single `--config` argument pointing to the wanted configuration file. This argument is required and an error is thrown if not provided.
+MURL is available either as a binary through [GitHub Releases](https://github.com/slightly-inconvenient/murl/releases/latest) or as a multiarch OCI image through GitHub Container Registry [packages](https://github.com/slightly-inconvenient/murl/pkgs/container/murl).
+
+### Binary
+
+To serve routes run the binary with 
+```sh
+murl serve --config /path/to/config.yaml
+```
+
+To see all supported commands run the binary with
+```sh
+murl --help
+```
+
+### Container 
+
+Pull the image with
+```sh
+docker pull ghcr.io/slightly-inconvenient/murl:latest
+```
+
+Run the image 
+```sh
+docker run --read-only -v /path/to/config.yaml:/app/config.yaml:ro ghcr.io/slightly-inconvenient/murl:latest serve --config /app/config.yaml
+```

@@ -25,7 +25,7 @@ func TestSmoke(t *testing.T) {
 	go func() {
 		defer close(errCh)
 
-		os.Args = []string{"murl", "-config", filepath.Join("testdata", "config.yaml")}
+		os.Args = []string{"murl", "serve", "--config", filepath.Join("testdata", "config.yaml")}
 		if result := run(serverCtx); result != 0 {
 			errCh <- fmt.Errorf("unexpected exit code: %d", result)
 		}
