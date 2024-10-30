@@ -133,7 +133,7 @@ func TestRun(t *testing.T) {
 			},
 			routes:      []config.Route{},
 			requestPath: "",
-			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
+			check:       checkDocs("<!DOCTYPE html>\n<html>\n<body>\n<h1 id=\"available-routes\">Available Routes</h1>\n\n</body>\n</html>"),
 		},
 		{
 			description: "serves docs from custom path",
@@ -145,15 +145,33 @@ func TestRun(t *testing.T) {
 			},
 			routes:      []config.Route{},
 			requestPath: "/docs",
-			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n"),
+			check:       checkDocs("<!DOCTYPE html>\n<html>\n<body>\n<h1 id=\"available-routes\">Available Routes</h1>\n\n</body>\n</html>"),
 		},
 		{
-			description: "serves custom docs template",
+			description: "serves custom docs page template",
 			config: config.Server{
 				Address: "localhost:8083",
 				Documentation: config.ServerDocumentationConfig{
 					Templates: config.ServerTemplatesConfig{
-						Root: `
+						Page: `<!DOCTYPE html>
+<html>
+</html>`,
+					},
+				},
+			},
+			routes: []config.Route{
+				{Path: "/test", Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"}},
+			},
+			requestPath: "",
+			check:       checkDocs("<!DOCTYPE html>\n<html>\n</html>"),
+		},
+		{
+			description: "serves custom docs template",
+			config: config.Server{
+				Address: "localhost:8084",
+				Documentation: config.ServerDocumentationConfig{
+					Templates: config.ServerTemplatesConfig{
+						Content: `
 # Title
 test custom template with {{ range . }} {{ .Path }} {{ end }}
 
@@ -168,12 +186,12 @@ including default routes template
 				{Path: "/test", Redirect: config.RouteRedirect{URL: "http://localhost:8080/test2"}},
 			},
 			requestPath: "",
-			check:       checkDocs("<h1 id=\"title\">Title</h1>\n<p>test custom template with  /test</p>\n<p>including default routes template</p>\n<h1 id=\"available-routes\">Available Routes</h1>\n"),
+			check:       checkDocs("<!DOCTYPE html>\n<html>\n<body>\n<h1 id=\"title\">Title</h1>\n<p>test custom template with  /test</p>\n<p>including default routes template</p>\n<h1 id=\"available-routes\">Available Routes</h1>\n\n</body>\n</html>"),
 		},
 		{
 			description: "serves route docs",
 			config: config.Server{
-				Address: "localhost:8084",
+				Address: "localhost:8085",
 			},
 			routes: []config.Route{
 				{
@@ -187,7 +205,7 @@ including default routes template
 				},
 			},
 			requestPath: "",
-			check:       checkDocs("<h1 id=\"available-routes\">Available Routes</h1>\n<h2 id=\"test-route\">Test Route</h2>\n<p>A test route</p>\n"),
+			check:       checkDocs("<!DOCTYPE html>\n<html>\n<body>\n<h1 id=\"available-routes\">Available Routes</h1>\n<h2 id=\"test-route\">Test Route</h2>\n<p>A test route</p>\n\n</body>\n</html>"),
 		},
 	}
 

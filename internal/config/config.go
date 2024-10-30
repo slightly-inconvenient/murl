@@ -70,8 +70,11 @@ type ServerTLSConfig struct {
 }
 
 type ServerTemplatesConfig struct {
-	// Root is the path to the server root page template file.
-	Root string `yaml:"root" json:"root"`
+	// Page is the path to the server documentation page template file.
+	Page string `yaml:"page" json:"page"`
+
+	// Content is the path to the server documentation page content template file.
+	Content string `yaml:"content" json:"content"`
 }
 
 type ServerDocumentationConfig struct {

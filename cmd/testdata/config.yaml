@@ -10,21 +10,40 @@ server:
   documentation:
     # Templates may be provided to override the built in templates.
     templates: {}
-      # A custom root golang text/template for rendering the root page may be provided.
+      # A custom golang text/template for rendering the documentation page.
+      # The template is given a html rendering of the content (defined below)
+      # available as {{ .Content }}
+      #
+      # Primary use case is for defining e.g. custom layout, interactivity or styling
+      # through inlined css or javascript.
+      #
+      # page: |
+      #  <!DOCTYPE html>
+      #  <html>
+      #    <head>
+      #      <title>My custom documentation page</title>
+      #    </head>
+      #    <body>
+      #      {{ .Content }}
+      #    </body>
+      #  </html>
+
+      # A custom golang text/template for rendering the body for the page may be provided.
       # The template is given a copy of the raw routes configuration as input and is
-      # expected to produce valid GitHub Flavored Markdown.
+      # expected to produce valid GitHub Flavored Markdown. The routes are available
+      # as {{ . }}
       #
       # Defaults to rendering documentation for all routes.
-      # See internal/server/templates/root.md.tmpl for details.
+      # See internal/server/templates/content.md.tmpl for details.
       #
-      # root: |
+      # content: |
       #  # My special documentation page
       #  Whatever you'd like to add to the page context
       #  
       #  The default routes template may be rendered with:
       #  {{ template "routes" .}}
     
-    # A custom path to the documentation root page.
+    # A custom path to the documentation page.
     # Default is site root ("/").
     #
     # path: /docs
@@ -52,6 +71,10 @@ routes:
   documentation: 
     title: Sample route
     description: |
+      ### Paths
+      - /example/{rest}
+      - /example2/{rest}
+      ### Description
       An example route that picks params from the env, path, query, and headers
 
   # All environment variables made available to the route must be explicitly allow listed.

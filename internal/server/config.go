@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"text/template"
@@ -78,19 +79,36 @@ func NewConfig(conf config.Server, routes []config.Route) (Config, error) {
 	}, nil
 }
 
+type docsPageHtmlInput struct {
+	Content string
+}
+
 func renderDocumentation(config config.ServerDocumentationConfig, routes []config.Route) (DocumentationConfig, error) {
-	tmpl, err := template.ParseFS(templates, "templates/*")
-	if err != nil {
-		return DocumentationConfig{}, fmt.Errorf("failed to parse documentation default templates: %w", err)
+	tmpl := template.New("")
+	for name, path := range map[string]string{
+		"page":    "templates/page.html.tmpl",
+		"content": "templates/content.md.tmpl",
+		"routes":  "templates/routes.md.tmpl",
+	} {
+		content, _ := fs.ReadFile(templates, path)
+		_, err := tmpl.New(name).Parse(string(content))
+		if err != nil {
+			return DocumentationConfig{}, fmt.Errorf("failed to parse documentation default template %q: %w", path, err)
+		}
 	}
-	if config.Templates.Root != "" {
-		if _, err := tmpl.Lookup("root").Parse(config.Templates.Root); err != nil {
-			return DocumentationConfig{}, fmt.Errorf("failed to parse custom root template: %w", err)
+	if config.Templates.Page != "" {
+		if _, err := tmpl.Lookup("page").Parse(config.Templates.Page); err != nil {
+			return DocumentationConfig{}, fmt.Errorf("failed to parse custom page template: %w", err)
+		}
+	}
+	if config.Templates.Content != "" {
+		if _, err := tmpl.Lookup("content").Parse(config.Templates.Content); err != nil {
+			return DocumentationConfig{}, fmt.Errorf("failed to parse custom content template: %w", err)
 		}
 	}
 
 	docsMarkdown := &bytes.Buffer{}
-	if err := tmpl.ExecuteTemplate(docsMarkdown, "root", routes); err != nil {
+	if err := tmpl.ExecuteTemplate(docsMarkdown, "content", routes); err != nil {
 		return DocumentationConfig{}, fmt.Errorf("failed to render documentation: %w", err)
 	}
 
@@ -101,12 +119,18 @@ func renderDocumentation(config config.ServerDocumentationConfig, routes []confi
 		),
 		goldmark.WithRendererOptions(
 			html.WithHardWraps(),
-			html.WithXHTML(),
 		),
 	)
 
 	docsHtml := bytes.NewBuffer(make([]byte, 0, docsMarkdown.Len()))
 	if err := markdown.Convert(docsMarkdown.Bytes(), docsHtml); err != nil {
+		return DocumentationConfig{}, fmt.Errorf("failed to render documentation: %w", err)
+	}
+
+	docsPageHtml := bytes.NewBuffer(make([]byte, 0, docsHtml.Len()))
+	if err := tmpl.ExecuteTemplate(docsPageHtml, "page", docsPageHtmlInput{
+		Content: docsHtml.String(),
+	}); err != nil {
 		return DocumentationConfig{}, fmt.Errorf("failed to render documentation: %w", err)
 	}
 
@@ -121,6 +145,6 @@ func renderDocumentation(config config.ServerDocumentationConfig, routes []confi
 
 	return DocumentationConfig{
 		path:    documentationPath,
-		content: docsHtml.Bytes(),
+		content: docsPageHtml.Bytes(),
 	}, nil
 }

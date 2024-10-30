@@ -7,8 +7,9 @@ go_library(
         "server.go",
     ],
     embedsrcs = [
-        "templates/root",
-        "templates/routes",
+        "templates/content.md.tmpl",
+        "templates/page.html.tmpl",
+        "templates/routes.md.tmpl",
     ],
     importpath = "github.com/slightly-inconvenient/murl/internal/server",
     visibility = ["//:__subpackages__"],
