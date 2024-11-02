@@ -26,6 +26,19 @@ func run(ctx context.Context) int {
 		EnableShellCompletion: true,
 		Commands: []*cli.Command{
 			createServeCommand(),
+			createValidateCommand(),
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "config",
+				Aliases:  []string{"c"},
+				Usage:    "Path to the configuration file",
+				Required: true,
+				Sources: cli.NewValueSourceChain(
+					cli.EnvVar("MURL_CONFIG"),
+				),
+				Value: "config.json",
+			},
 		},
 	}
 
@@ -63,17 +76,30 @@ func createServeCommand() *cli.Command {
 
 			return nil
 		},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "config",
-				Aliases:  []string{"c"},
-				Usage:    "Path to the configuration file",
-				Required: true,
-				Sources: cli.NewValueSourceChain(
-					cli.EnvVar("MURL_CONFIG"),
-				),
-				Value: "config.json",
-			},
+	}
+}
+
+func createValidateCommand() *cli.Command {
+	return &cli.Command{
+		Name:  "validate",
+		Usage: "Validate routes against tests defined in them",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			conf, err := config.ParseConfigFile(cmd.String("config"))
+			if err != nil {
+				return fmt.Errorf("failed to parse config file: %w", err)
+			}
+
+			routes, err := route.NewRoutes(conf.Routes)
+			if err != nil {
+				return fmt.Errorf("invalid routes: %w", err)
+			}
+
+			handlers := route.NewHandlers(routes)
+			if err := route.TestHandlers(ctx, routes, handlers); err != nil {
+				return fmt.Errorf("failed tests: %w", err)
+			}
+
+			return nil
 		},
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestSmoke(t *testing.T) {
+func TestServe(t *testing.T) {
 	t.Setenv("EXAMPLE_HOST", "localhost")
 
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
@@ -59,5 +59,15 @@ func TestSmoke(t *testing.T) {
 				t.Logf("expected 307 TemporaryRedirect but got %s / %v", resp.Status, string(content))
 			}
 		}
+	}
+}
+
+func TestValidate(t *testing.T) {
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
+	t.Cleanup(cancelCtx)
+
+	os.Args = []string{"murl", "validate", "--config", filepath.Join("testdata", "config.yaml")}
+	if result := run(ctx); result != 0 {
+		t.Fatalf("unexpected exit code: %d", result)
 	}
 }

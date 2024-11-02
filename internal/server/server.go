@@ -17,7 +17,7 @@ func Run(ctx context.Context, config Config, handlers []route.Handler) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+config.documentation.path, createDocsHandler(config.documentation.content))
 	for _, handler := range handlers {
-		mux.HandleFunc(handler.Path(), handler.Handler())
+		mux.HandleFunc(handler.Route(), handler.Handler())
 	}
 
 	server := &http.Server{

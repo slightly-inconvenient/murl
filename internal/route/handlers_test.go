@@ -1,12 +1,14 @@
 package route_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/slightly-inconvenient/murl/internal/config"
 	"github.com/slightly-inconvenient/murl/internal/route"
@@ -165,7 +167,7 @@ func TestHandler(t *testing.T) {
 			handlers := route.NewHandlers(routes)
 			mux := http.NewServeMux()
 			for _, handler := range handlers {
-				mux.HandleFunc(handler.Path(), handler.Handler())
+				mux.HandleFunc(handler.Route(), handler.Handler())
 			}
 
 			rec := httptest.NewRecorder()
@@ -173,6 +175,92 @@ func TestHandler(t *testing.T) {
 
 			if err := test.checkResponse(rec); err != nil {
 				t.Fatalf("unexpected response: %s", err)
+			}
+		})
+	}
+}
+
+func Test_TestHandlers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		description string
+		routes      []config.Route
+		tests       []config.RouteTest
+	}{
+		{
+			description: "simple route with no params",
+			routes: []config.Route{
+				{
+					Path: "/example",
+					Redirect: config.RouteRedirect{
+						URL: "https://example.com",
+					},
+					Tests: []config.RouteTest{
+						{
+							Request: config.RouteTestRequest{
+								URL: "/example",
+							},
+							Response: config.RouteTestResponse{
+								URL: "https://example.com",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			description: "complex params route",
+			routes: []config.Route{
+				{
+					Path: "/example/{id}",
+					Redirect: config.RouteRedirect{
+						URL: "https://{{.host}}/id/{{.id}}?a={{.query}}&b={{.header}}",
+					},
+					Environment: config.RouteEnvironment{
+						Allowlist: []string{"TEST_ENV_VAR"},
+					},
+					Params: map[string]string{
+						"id":     `{{.GetPath "id"}}`,
+						"query":  `{{.GetQuery "q"}}`,
+						"host":   `{{.GetEnv "TEST_ENV_VAR"}}`,
+						"header": `{{.GetHeader "x-test-header"}}`,
+					},
+					Tests: []config.RouteTest{
+						{
+							Request: config.RouteTestRequest{
+								URL: "/example/wasd?q=xyz",
+								Headers: map[string]string{
+									"x-test-header": "abc",
+								},
+								Environment: map[string]string{
+									"TEST_ENV_VAR": "test.local",
+								},
+							},
+							Response: config.RouteTestResponse{
+								URL: "https://test.local/id/wasd?a=xyz&b=abc",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			t.Parallel()
+			ctx, cancelCtx := context.WithTimeout(context.Background(), time.Second)
+			defer cancelCtx()
+
+			routes, err := route.NewRoutes(test.routes)
+			if err != nil {
+				t.Fatalf("failed to create test routes: %v", err)
+			}
+
+			handlers := route.NewHandlers(routes)
+			if err := route.TestHandlers(ctx, routes, handlers); err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
 		})
 	}

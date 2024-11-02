@@ -2,6 +2,7 @@ package route
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"text/template"
 
@@ -27,12 +28,29 @@ type RouteRedirect struct {
 	url *template.Template
 }
 
+type RouteTestRequest struct {
+	environment map[string]string
+	headers     map[string]string
+	url         string
+}
+
+type RouteTestResponse struct {
+	status int
+	url    string
+}
+
+type RouteTest struct {
+	request  RouteTestRequest
+	response RouteTestResponse
+}
+
 type Route struct {
 	paths       []string
 	environment RouteEnvironment
 	params      map[string]*template.Template
 	checks      []RouteCheck
 	redirect    RouteRedirect
+	tests       []RouteTest
 	valid       bool
 }
 
@@ -79,6 +97,14 @@ func NewRoutes(routes []config.Route) ([]Route, error) {
 				expr:  expr,
 				error: tmpl,
 			})
+		}
+
+		for tidx, test := range route.Tests {
+			resultTest, err := parseTest(test)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse test [%d] for route at index [%d]: %w", tidx, idx, err)
+			}
+			resultRoute.tests = append(resultRoute.tests, resultTest)
 		}
 
 		parsedURL, err := parseTemplate(route.Redirect.URL)
@@ -166,4 +192,27 @@ func parseTemplate(tmpl string) (*template.Template, error) {
 	}
 
 	return parsedTemplate, nil
+}
+
+func parseTest(test config.RouteTest) (RouteTest, error) {
+	result := RouteTest{
+		request: RouteTestRequest{
+			url:         test.Request.URL,
+			headers:     test.Request.Headers,
+			environment: test.Request.Environment,
+		},
+		response: RouteTestResponse{
+			status: http.StatusTemporaryRedirect,
+			url:    test.Response.URL,
+		},
+	}
+
+	if result.request.url == "" {
+		return RouteTest{}, fmt.Errorf("test request url is required but was missing")
+	}
+	if result.response.url == "" {
+		return RouteTest{}, fmt.Errorf("test response url is required but was missing")
+	}
+
+	return result, nil
 }

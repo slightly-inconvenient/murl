@@ -2,8 +2,10 @@ package route
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"sync"
 
@@ -44,8 +46,8 @@ type Handler struct {
 	handler http.HandlerFunc
 }
 
-func (s Handler) Path() string {
-	return s.path
+func (s Handler) Route() string {
+	return "GET " + s.path
 }
 
 func (s Handler) Handler() http.HandlerFunc {
@@ -60,10 +62,31 @@ func NewHandlers(routes []Route) []Handler {
 		}
 		handler := createRouteHandler(route)
 		for _, path := range route.paths {
-			handlers = append(handlers, Handler{path: "GET " + path, handler: handler})
+			handlers = append(handlers, Handler{path: path, handler: handler})
 		}
 	}
 	return handlers
+}
+
+func TestHandlers(ctx context.Context, routes []Route, handlers []Handler) error {
+	mux := http.NewServeMux()
+	for _, handler := range handlers {
+		mux.HandleFunc(handler.Route(), handler.Handler())
+	}
+
+	for idx, route := range routes {
+		if !route.valid {
+			panic(fmt.Errorf("route at index %d has not been validated - create the routes using NewRoutes", idx))
+		}
+
+		for _, test := range route.tests {
+			if err := testRoute(ctx, mux, test); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func createRouteHandler(route Route) http.HandlerFunc {
@@ -138,5 +161,63 @@ func getBuffer() (*bytes.Buffer, func()) {
 
 	return buffer, func() {
 		bufferPool.Put(buffer)
+	}
+}
+
+func testRoute(ctx context.Context, mux *http.ServeMux, test RouteTest) error {
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, test.request.url, nil)
+	for k, v := range test.request.headers {
+		req.Header.Add(k, v)
+	}
+
+	clear := setCheckEnvironment(test.request.environment)
+	defer clear()
+
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+
+	if w.Code != test.response.status {
+		return fmt.Errorf("expected status %d but got %d", test.response.status, w.Code)
+	}
+
+	if w.Header().Get("Location") != test.response.url {
+		return fmt.Errorf("expected redirect to %q but got %q", test.response.url, w.Header().Get("Location"))
+	}
+
+	return nil
+}
+
+func setCheckEnvironment(env map[string]string) func() {
+	setEnv := func(key string, value string) {
+		if err := os.Setenv(key, value); err != nil {
+			panic(fmt.Errorf("failed to set env %w", err))
+		}
+	}
+	unsetEnv := func(key string) {
+		if err := os.Unsetenv(key); err != nil {
+			panic(fmt.Errorf("failed to unset env %w", err))
+		}
+	}
+
+	originalEnv := map[string]*string{}
+	for key, newValue := range env {
+		existing, existed := os.LookupEnv(key)
+		if existed {
+			originalEnv[key] = &existing
+		} else {
+			originalEnv[key] = nil
+		}
+
+		setEnv(key, newValue)
+	}
+
+	return func() {
+		for k, v := range originalEnv {
+			if v == nil {
+				unsetEnv(k)
+			} else {
+				setEnv(k, *v)
+			}
+		}
 	}
 }

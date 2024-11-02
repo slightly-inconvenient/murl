@@ -73,6 +73,15 @@ routes:
     error: "path is required"
   redirect:
     url: "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.contentType}}"
+  tests:
+  - request:
+      url: "/example/123?query=abc"
+      headers:
+        content-type: "application/json"
+      environment:
+        EXAMPLE_HOST: "example.com"
+    response:
+      url: "https://example.com/any/will/do/123?q=abc&h=application/json"
  `, certPath, keyPath)),
 		},
 		{
@@ -118,7 +127,23 @@ routes:
       ],
       "redirect": {
         "url": "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.contentType}}"
-      }
+      },
+      "tests": [
+        {
+          "request": {
+            "url": "/example/123?query=abc",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "environment": {
+              "EXAMPLE_HOST": "example.com"
+            }
+          },
+          "response": {
+            "url": "https://example.com/any/will/do/123?q=abc&h=application/json"
+          }
+        }
+      ]
     }
   ]
 }`, certPath, keyPath)),

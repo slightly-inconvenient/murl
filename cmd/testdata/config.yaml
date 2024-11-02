@@ -94,7 +94,7 @@ routes:
     path: '{{.GetPath "rest"}}'
     host: '{{.GetEnv "EXAMPLE_HOST"}}'
     query: '{{.GetQuery "query"}}'
-    contentType: '{{.GetHeader "content-type"}}'
+    header: '{{.GetHeader "x-abc"}}'
 
   # Checks may be used to validate the input params or any other condition before redirecting.
   # The expr field can be any Common Expression Language (CEL) compatible expression.
@@ -111,4 +111,20 @@ routes:
   # The url field can be any Go text/template compatible template string.
   # The template is given the same params object as input.
   redirect:
-    url: "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.contentType}}"
+    url: "https://{{.host}}/any/will/do/{{.path}}?q={{.query}}&h={{.header}}"
+  
+  # Tests may be provided to validate the route configuration.
+  # This helps in more complex routes to validate the redirects are as expected by providing simple
+  # human readable documentation of the expected behavior.
+  #
+  # The request may set any values parseable by murl: route path and query params as url and headers and environment values
+  # The response defines the final url expected after the redirect.
+  tests:
+    - request:
+        environment:
+          EXAMPLE_HOST: "localhost"
+        headers: 
+          x-abc: "custom-header-value"
+        url: "/example/123?query=foo"
+      response:
+        url: "https://localhost/any/will/do/123?q=foo&h=custom-header-value"

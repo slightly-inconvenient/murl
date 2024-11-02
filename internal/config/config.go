@@ -38,6 +38,30 @@ type RouteDocumentation struct {
 	Description string `yaml:"description" json:"description"`
 }
 
+type RouteTestRequest struct {
+	// Environment defines the environment variables and their values
+	Environment map[string]string `yaml:"environment" json:"environment"`
+
+	// Headers defines the headers that should be sent with the request
+	Headers map[string]string `yaml:"headers" json:"headers"`
+
+	// URL defines the request url to send
+	URL string `yaml:"url" json:"url"`
+}
+
+type RouteTestResponse struct {
+	// URL defines the expected response url
+	URL string `yaml:"url" json:"url"`
+}
+
+type RouteTest struct {
+	// Request defines the expectation input request data
+	Request RouteTestRequest `yaml:"request" json:"request"`
+
+	// Response defines the expected response data
+	Response RouteTestResponse `yaml:"response" json:"response"`
+}
+
 type Route struct {
 	// Path defines the absolute path to match against.
 	Path string `yaml:"path" json:"path"`
@@ -59,6 +83,9 @@ type Route struct {
 
 	// Redirect is the redirect configuration.
 	Redirect RouteRedirect `yaml:"redirect" json:"redirect"`
+
+	// Tests defines the valid route resulting redirect tests
+	Tests []RouteTest `yaml:"tests" json:"tests"`
 }
 
 type ServerTLSConfig struct {
